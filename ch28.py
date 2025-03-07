@@ -15,7 +15,8 @@ while not has_quit:
     print('PIC32 MOTOR DRIVER INTERFACE')
     # display the menu options; this list will grow
     print('\tb: Read Current Sensor (mA) \tc: Encoder Count \td: Angle') # '\t' is a tab
-    print('\te: Reset Encoder Count\t \t r:Read Mode\t \tq: Quit')
+    print('\te: Reset Encoder Count \t\tf: Set PWM \t\tp: Power off')
+    print('\tr:Read Mode\t \tq: Quit')
 
     # read the user's choice
     selection = input('\nENTER COMMAND: ')
@@ -38,6 +39,18 @@ while not has_quit:
 
     elif(selection == 'e'):
         print("Reset Encoder Count\n")
+
+    elif(selection == 'f'):
+        pwm_str = input('Set PWM (-100 to 100): ')
+        ser.write((str(pwm_str) + '\n').encode())
+
+        pwm_return = ser.read_until(b'\n')
+        return_str = int(pwm_return)
+        print('PWM set to ' + str(return_str) + '\n')
+
+    elif(selection == 'p'):
+        motor_return = ser.read_until(b'\n').decode('utf-8')
+        print(str(motor_return) + '\n')
     
     elif(selection == 'r'):
         out = ser.read_until(b'\n').decode('utf-8')

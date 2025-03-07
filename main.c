@@ -2,10 +2,14 @@
 #include "encoder.h"
 #include "utilities.h"
 #include "ina219.h"
+#include "current.h"
+#include "position.h"
 // include other header files here
 
 #define BUF_SIZE 200
+
 static volatile int encoder_count_offset = 0;
+signed int pwm; // PWM control defined by user
 
 int main() 
 {
@@ -19,6 +23,7 @@ int main()
   // in future, initialize modules or peripherals here
   UART2_Startup();
   INA219_Startup();
+  CurrentControl_Startup();
   __builtin_enable_interrupts();
 
   while(1)
@@ -64,6 +69,23 @@ int main()
       case 'e':                         // reset encoder count 
       {
         encoder_count_offset = get_encoder_count();
+        break;
+      }
+
+      case 'f':                         // set PWM
+      {
+        set_mode(PWM);
+        NU32DIP_ReadUART1(buffer, BUF_SIZE);
+        sscanf(buffer, "%d", &pwm);
+        sprintf(buffer, "%d\r\n", pwm);
+        NU32DIP_WriteUART1(buffer);
+        break;
+      }
+
+      case 'p':                         // Turn off motor
+      {
+        set_mode(IDLE);
+        NU32DIP_WriteUART1("Motor off\r\n");    // write from UART for validation
         break;
       }
 
