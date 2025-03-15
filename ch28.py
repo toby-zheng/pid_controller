@@ -5,6 +5,7 @@
 # sudo apt-get install python3-matplotlib
 
 import serial
+from plot_arrays import *
 ser = serial.Serial('COM3',230400)
 print('Opening port: ')
 print(ser.name)
@@ -69,6 +70,10 @@ while not has_quit:
         proportional_gain = float(gain_read[0])
         integral_gain = float(gain_read[1])
         print("\tProportional Gain: {}\n\tIntegral Gain: {}\n".format(proportional_gain, integral_gain))
+    
+    elif(selection == 'k'):
+        print("Test Current Gains:")
+        read_plot_matrix(ser)
 
         
     elif(selection == 'p'):

@@ -93,7 +93,7 @@ int main()
         set_igain(igain_input);
         pgain_input = get_pgain();
         igain_input = get_igain();
-        sprintf(buffer, "%.2f %.2f\r\n", pgain_input, igain_input);
+        sprintf(buffer, "%.3f %.3f\r\n", pgain_input, igain_input);
         NU32DIP_WriteUART1(buffer);
         break;
       }
@@ -103,14 +103,24 @@ int main()
         float pgain_input, igain_input;
         pgain_input = get_pgain();
         igain_input = get_igain();
-        sprintf(buffer, "%.2f %.2f\r\n", pgain_input, igain_input);
+        sprintf(buffer, "%.3f %.3f\r\n", pgain_input, igain_input);
         NU32DIP_WriteUART1(buffer);
         break;
       }
 
-      case 'k': 
+      case 'k':                         // test current gains
       {
-        
+        float pgain_input, igain_input;
+        reset_count();
+        reset_error();
+        set_mode(ITEST);
+        while (get_mode() == ITEST) {}
+        pgain_input = get_pgain();
+        igain_input = get_igain();
+        sprintf(buffer, "%.3f %.3f\r\n", pgain_input, igain_input);
+        NU32DIP_WriteUART1(buffer);
+        output_plot_data();
+        break;
       }
 
       case 'p':                         // Turn off motor

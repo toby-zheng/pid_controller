@@ -2,6 +2,14 @@
 
 signed int pwm;
 float igain, pgain;
+volatile float current_error, i_current_error = 0;
+
+volatile float read_current, ref_current, current;
+static int current_count = 0;
+
+float measured_current_array[SAMPLE_NUM];
+float ref_array[SAMPLE_NUM];
+
 
 //5KHz ISR
 void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
@@ -18,17 +26,36 @@ void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
         case PWM: {
             // User set PWM
             if (pwm < 0) {
-                LATAbits.LATA1 = 0;
+                DIR_BIT = 0;
             }
             else {
-                LATAbits.LATA1 = 1;
+                DIR_BIT = 1;
             }
             OC1RS = (unsigned int) (abs(pwm) * PR3/100);
             break;
         }
 
         case ITEST: {
-            
+            if (current_count < 25) {
+                ref_current = 200;
+            }
+            else if (current_count < 50) {
+                ref_current = -200;
+            }
+            else if (current_count < 75) {
+                ref_current = 200;
+            }
+            else if (current_count < 100) {
+                ref_current = -200;
+            }
+            else {
+                set_mode(IDLE);
+                break;
+            }
+
+            PI_Control();
+            current_count ++;
+            break;
         }
     }
     
@@ -70,6 +97,50 @@ void CurrentControl_Startup(void) {
     IEC0bits.T2IE = 1;
 }
 
+void PI_Control(void) {
+
+    // Read Current, PI control for desired current
+    read_current = INA219_read_current();
+    current_error = ref_current - read_current;
+    current = igain*i_current_error + pgain*current_error;
+
+    // Bounds
+    if (current > 100) {
+        current = 100;
+    }
+    else if (current < -100) {
+        current = -100;
+    }
+
+    // Direction Bit
+    if (current > 0) {
+        DIR_BIT = 0;
+    }
+    else {
+        DIR_BIT = 1;
+    }
+
+    // Output Compare (PWM)
+    OC1RS = (unsigned int) (abs(current) * PR3/100);
+
+    // Save data in arrays for plotting
+    measured_current_array[current_count] = read_current;
+    ref_array[current_count] = ref_current;
+
+    // Update integral current_error
+    i_current_error += current_error;
+}
+
+void output_plot_data(void) {
+    char data[50];
+    sprintf(data, "%d\r\n", SAMPLE_NUM);
+    NU32DIP_WriteUART1(data);
+    for(int i = 0; i < SAMPLE_NUM; i++) {
+        sprintf(data, "%.5f %.5f\r\n", measured_current_array[i], ref_array[i]);
+        NU32DIP_WriteUART1(data);
+    }
+}
+
 // Setters & Getters
 void set_pwm(signed int pwm_input) {
     pwm = pwm_input;
@@ -93,4 +164,13 @@ void set_igain(float igain_input) {
 
 float get_igain(void) {
     return igain;
+}
+
+void reset_error(void) {
+    current_error = 0;
+    i_current_error = 0;
+}
+
+void reset_count(void) {
+    current_count = 0;
 }
