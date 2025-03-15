@@ -1,6 +1,7 @@
 #include "current.h"
 
-extern int pwm;
+signed int pwm;
+float igain, pgain;
 
 //5KHz ISR
 void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
@@ -8,10 +9,10 @@ void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
     switch (get_mode()) {
 
         case IDLE: {
-        // Stop sending PWM
-        pwm = 0;    // set pwm to 0 so the next PWM mode it doesn't auto-start
-        OC1RS = 0;  
-        break;
+            // Stop sending PWM
+            pwm = 0;    // set pwm to 0 so the next PWM mode it doesn't auto-start
+            OC1RS = 0;  
+            break;
         }
 
         case PWM: {
@@ -23,8 +24,12 @@ void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
                 LATAbits.LATA1 = 1;
             }
             OC1RS = (unsigned int) (abs(pwm) * PR3/100);
+            break;
         }
-        break;
+
+        case ITEST: {
+            
+        }
     }
     
     IFS0bits.T2IF = 0;
@@ -63,4 +68,29 @@ void CurrentControl_Startup(void) {
     OC1CONbits.ON = 1;
     
     IEC0bits.T2IE = 1;
+}
+
+// Setters & Getters
+void set_pwm(signed int pwm_input) {
+    pwm = pwm_input;
+}
+
+signed int get_pwm(void) {
+    return pwm;
+}
+
+void set_pgain(float pgain_input) {
+    pgain = pgain_input;
+}
+
+float get_pgain(void) {
+    return pgain;
+}
+
+void set_igain(float igain_input) {
+    igain = igain_input;
+}
+
+float get_igain(void) {
+    return igain;
 }

@@ -15,8 +15,9 @@ while not has_quit:
     print('PIC32 MOTOR DRIVER INTERFACE')
     # display the menu options; this list will grow
     print('\tb: Read Current Sensor (mA) \tc: Encoder Count \td: Angle') # '\t' is a tab
-    print('\te: Reset Encoder Count \t\tf: Set PWM \t\tp: Power off')
-    print('\tr:Read Mode\t \tq: Quit')
+    print('\te: Reset Encoder Count \t\tf: Set PWM \t\tg: Set Current Gains')
+    print('\th: Read Current Gains \t\tk: Test Current Gains \tp: Power off')
+    print('\tr:Read Mode \t\tq: Quit')
 
     # read the user's choice
     selection = input('\nENTER COMMAND: ')
@@ -48,6 +49,28 @@ while not has_quit:
         return_str = int(pwm_return)
         print('PWM set to ' + str(return_str) + '\n')
 
+    elif(selection == 'g'):
+        print("Set Current Gains:")
+        proportional_gain = float(input('\tEnter Proportional Gain: '))
+        integral_gain = float(input('\tEnter Integral Gain: '))
+        ser.write((str(proportional_gain) + ' ' + str(integral_gain) + '\n').encode())
+
+        gain_read = ser.read_until(b'\n').decode('utf-8')
+        gain_read = gain_read.split()
+        proportional_gain = float(gain_read[0])
+        integral_gain = float(gain_read[1])
+        print("Read Current Gains:")
+        print("\tProportional Gain: {}\n\tIntegral Gain: {}\n".format(proportional_gain, integral_gain))
+
+    elif(selection == 'h'):
+        print("Read Current Gains:")
+        gain_read = ser.read_until(b'\n').decode('utf-8')
+        gain_read = gain_read.split()
+        proportional_gain = float(gain_read[0])
+        integral_gain = float(gain_read[1])
+        print("\tProportional Gain: {}\n\tIntegral Gain: {}\n".format(proportional_gain, integral_gain))
+
+        
     elif(selection == 'p'):
         motor_return = ser.read_until(b'\n').decode('utf-8')
         print(str(motor_return) + '\n')

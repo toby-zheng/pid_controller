@@ -9,7 +9,6 @@
 #define BUF_SIZE 200
 
 static volatile int encoder_count_offset = 0;
-signed int pwm; // PWM control defined by user
 
 int main() 
 {
@@ -25,12 +24,12 @@ int main()
   INA219_Startup();
   CurrentControl_Startup();
   __builtin_enable_interrupts();
+  set_mode(IDLE);
 
   while(1)
   {
     NU32DIP_ReadUART1(buffer,BUF_SIZE); // we expect the next character to be a menu command
     NU32DIP_YELLOW = 1;                   // clear the error LED
-    set_mode(IDLE);
 
     switch (buffer[0]) {
       case 'b':                   // read current sensor (mA)
@@ -74,12 +73,44 @@ int main()
 
       case 'f':                         // set PWM
       {
+        signed int pwm;
         set_mode(PWM);
         NU32DIP_ReadUART1(buffer, BUF_SIZE);
         sscanf(buffer, "%d", &pwm);
         sprintf(buffer, "%d\r\n", pwm);
+        set_pwm(pwm);
+        pwm = get_pwm();
         NU32DIP_WriteUART1(buffer);
         break;
+      }
+
+      case 'g':                         // set current gains
+      {
+        float pgain_input, igain_input;
+        NU32DIP_ReadUART1(buffer, BUF_SIZE);
+        sscanf(buffer, "%f %f", &pgain_input, &igain_input);
+        set_pgain(pgain_input);
+        set_igain(igain_input);
+        pgain_input = get_pgain();
+        igain_input = get_igain();
+        sprintf(buffer, "%.2f %.2f\r\n", pgain_input, igain_input);
+        NU32DIP_WriteUART1(buffer);
+        break;
+      }
+
+      case 'h':                         // get current gains
+      {
+        float pgain_input, igain_input;
+        pgain_input = get_pgain();
+        igain_input = get_igain();
+        sprintf(buffer, "%.2f %.2f\r\n", pgain_input, igain_input);
+        NU32DIP_WriteUART1(buffer);
+        break;
+      }
+
+      case 'k': 
+      {
+        
       }
 
       case 'p':                         // Turn off motor
