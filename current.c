@@ -1,7 +1,7 @@
 #include "current.h"
 
 signed int pwm;
-float igain, pgain;
+static float igain, pgain;
 volatile float current_error, i_current_error = 0;
 
 volatile float read_current, ref_current, current;
@@ -54,7 +54,16 @@ void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
             }
 
             PI_Control();
-            current_count ++;
+            break;
+        }
+
+        case HOLD: {
+            current_count = 0;
+            PI_Control();
+            break;
+        }
+
+        default: {
             break;
         }
     }
@@ -129,6 +138,8 @@ void PI_Control(void) {
 
     // Update integral current_error
     i_current_error += current_error;
+
+    current_count ++;
 }
 
 void output_plot_data(void) {
@@ -166,11 +177,23 @@ float get_igain(void) {
     return igain;
 }
 
-void reset_error(void) {
+void set_ref_current(float input_current) {
+    ref_current = input_current;
+}
+
+float get_ref_current() {
+    return ref_current;
+}
+
+void reset_ref_current() {
+    ref_current = 0;
+}
+
+void reset_current_error(void) {
     current_error = 0;
     i_current_error = 0;
 }
 
-void reset_count(void) {
+void reset_current_count(void) {
     current_count = 0;
 }

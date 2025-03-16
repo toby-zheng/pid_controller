@@ -25,7 +25,11 @@ float get_pgain(void);
 void set_igain(float igain_input);
 float get_igain(void);
 
-void reset_error(void);
-void reset_count(void);
+void set_ref_current(float current);
+float get_ref_current(void);
+
+void reset_ref_current(void);
+void reset_current_error(void);
+void reset_current_count(void);
 
 #endif

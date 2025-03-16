@@ -31,7 +31,7 @@ def read_plot_matrix(ser):
 
     # plot data
     plt.plot(t,ref,'r*-',t,data,'b*-')
-    text_str = 'Proportional Gain = ' + str(pgain) + '\nIntegral Gain = ' + str(igain)
+    text_str = 'Proportional Gain = ' + str(pgain) + ' (mA^-1)'  + '\nIntegral Gain = ' + str(igain) + ' ((mA*s)^-1)'
     plt.text(0 , -190, text_str, fontsize = 8, bbox = {'facecolor': 'purple', 'alpha': 0.5, 'pad': 10})
     plt.title('Score = ' + str(score))
     plt.ylabel('Current (mA)')
