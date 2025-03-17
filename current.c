@@ -58,7 +58,13 @@ void __ISR(_TIMER_2_VECTOR, IPL5SOFT) CurrentControl(void)
         }
 
         case HOLD: {
-            current_count = 0;
+            reset_current_count();  // prevent overflow
+            PI_Control();
+            break;
+        }
+
+        case TRACK: {
+            reset_current_count();  // prevent overflow
             PI_Control();
             break;
         }
@@ -142,12 +148,12 @@ void PI_Control(void) {
     current_count ++;
 }
 
-void output_plot_data(void) {
+void output_current_plot_data(void) {
     char data[50];
     sprintf(data, "%d\r\n", SAMPLE_NUM);
     NU32DIP_WriteUART1(data);
     for(int i = 0; i < SAMPLE_NUM; i++) {
-        sprintf(data, "%.5f %.5f\r\n", measured_current_array[i], ref_array[i]);
+        sprintf(data, "%.5f %.5f\r\n", ref_array[i], measured_current_array[i]);
         NU32DIP_WriteUART1(data);
     }
 }

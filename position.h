@@ -8,9 +8,13 @@
 #include "current.h"
 #include "utilities.h"
 
+#define ARRAY_SIZE 2500
+
 int read_position(void);
 double read_degrees(void);
 void reset_encoder_count(void);
+void read_trajectory(void);
+void output_position_plot_data(void);
 
 void PositionControl_Startup(void);
 void PID_Position_Control(void);
@@ -28,6 +32,8 @@ float get_pos_dgain(void);
 void set_degrees(float degrees);
 float get_degrees(void);
 
-void reset_pos(void);
+int get_pos_count(void);
 
+void reset_pos(void);
+void reset_pos_array(void);
 #endif

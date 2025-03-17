@@ -6,6 +6,7 @@
 
 import serial
 from plot_arrays import *
+from genref import genRef
 ser = serial.Serial('COM3',230400)
 print('Opening port: ')
 print(ser.name)
@@ -18,7 +19,8 @@ while not has_quit:
     print('\tb: Read Current Sensor (mA) \tc: Encoder Count \td: Angle') # '\t' is a tab
     print('\te: Reset Encoder Count \t\tf: Set PWM \t\tg: Set Current Gains')
     print('\th: Read Current Gains \t\ti: Set Position Gains \tj: Read Position Gains')
-    print('\tk: Test Current Gains \t\tl: Go to angle (deg) \tp: Power off')
+    print('\tk: Test Current Gains \t\tl: Go to angle (deg) \tm: Load Step Trajectory')
+    print('\tn: Load Cubic Trajectory \to: Execute Trajectory \tp: Power off')
     print('\tr:Read Mode \t \t\tq: Quit')
 
     # read the user's choice
@@ -103,7 +105,31 @@ while not has_quit:
         pos_deg = float(input("Enter Position (Degrees): "))
         ser.write((str(pos_deg) + '\n').encode())
 
-        
+    elif(selection == 'm'):
+        ref = genRef('step')
+        t = range((len(ref)))
+        plt.plot(t, ref, 'r*-')
+        plt.ylabel('Angle (degrees)')
+        plt.xlabel('Index')
+        plt.show()
+        ser.write((str(len(ref)) + '\n').encode())
+        for i in ref:
+            ser.write((str(i) + '\n').encode())
+
+    elif(selection == 'n'):
+        ref = genRef('cubic')
+        t = range((len(ref)))
+        plt.plot(t, ref, 'r*-')
+        plt.ylabel('Angle (degrees)')
+        plt.xlabel('Index')
+        plt.show()
+        ser.write((str(len(ref)) + '\n').encode())
+        for i in ref:
+            ser.write((str(i) + '\n').encode())
+
+    elif(selection == 'o'):
+        read_pos_plot_matrix(ser)
+
     elif(selection == 'p'):
         motor_return = ser.read_until(b'\n').decode('utf-8')
         print(str(motor_return) + '\n')

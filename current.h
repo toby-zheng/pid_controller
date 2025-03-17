@@ -13,7 +13,7 @@
 
 void CurrentControl_Startup(void);
 void PI_Control(void);
-void output_plot_data(void);
+void output_current_plot_data(void);
 
 // Setters & Getters
 void set_pwm(signed int pwm_input);

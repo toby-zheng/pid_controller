@@ -138,7 +138,7 @@ int main()
         igain = get_igain();
         sprintf(buffer, "%.3f %.3f\r\n", pgain, igain);
         NU32DIP_WriteUART1(buffer);
-        output_plot_data();
+        output_current_plot_data();
         break;
       }
 
@@ -154,10 +154,44 @@ int main()
         break;
       }
 
+      case 'm':                         // step trajectory
+      {
+        read_trajectory();
+        break;
+      }
+
+      case 'n':                         // cubic trajectory
+      {
+        read_trajectory();
+        break;
+      }
+
+      case 'o':                         // execute trajectory
+      {
+        float pgain, igain, dgain;
+        reset_pos();
+        while (get_pos_count() != 0) {}
+        reset_current_error();
+        set_mode(TRACK);
+        while (get_mode() == TRACK) {}
+        pgain = get_pos_pgain();
+        igain = get_pos_igain();
+        dgain = get_pos_dgain();
+        sprintf(buffer, "%.3f %.3f %.3f\r\n", pgain, igain, dgain);
+        NU32DIP_WriteUART1(buffer);
+        output_position_plot_data();
+        reset_pos_array();
+        break;
+      }
+
       case 'p':                         // Turn off motor
       {
         set_mode(IDLE);
         NU32DIP_WriteUART1("Motor off\r\n");    // write from UART for validation
+        reset_current_count();
+        reset_current_error();
+        reset_pos_array();
+        reset_ref_current();
         break;
       }
 
