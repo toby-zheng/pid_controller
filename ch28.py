@@ -17,8 +17,9 @@ while not has_quit:
     # display the menu options; this list will grow
     print('\tb: Read Current Sensor (mA) \tc: Encoder Count \td: Angle') # '\t' is a tab
     print('\te: Reset Encoder Count \t\tf: Set PWM \t\tg: Set Current Gains')
-    print('\th: Read Current Gains \t\tk: Test Current Gains \tp: Power off')
-    print('\tr:Read Mode \t\tq: Quit')
+    print('\th: Read Current Gains \t\ti: Set Position Gains \tj: Read Position Gains')
+    print('\tk: Test Current Gains \t\tl: Go to angle (deg) \tp: Power off')
+    print('\tr:Read Mode \t \t\tq: Quit')
 
     # read the user's choice
     selection = input('\nENTER COMMAND: ')
@@ -71,9 +72,36 @@ while not has_quit:
         integral_gain = float(gain_read[1])
         print("\tProportional Gain: {}\n\tIntegral Gain: {}\n".format(proportional_gain, integral_gain))
     
+    elif(selection == 'i'):
+        print("Set Position Gains:")
+        proportional_gain = float(input('\tEnter Proportional Gain: '))
+        integral_gain = float(input('\tEnter Integral Gain: '))
+        derivative_gain = float(input("\tEnter Derivative Gain: "))
+        ser.write((str(proportional_gain) + ' ' + str(integral_gain) + ' ' + str(derivative_gain) + '\n').encode())
+
+        gain_read = ser.read_until(b'\n').decode('utf-8')
+        gain_read = gain_read.split()
+        proportional_gain = float(gain_read[0])
+        integral_gain = float(gain_read[1])
+        derivative_gain = float(gain_read[2])
+        print("\tProportional Gain: {}\n\tIntegral Gain: {}\n\tDerivative Gain: {}\n".format(proportional_gain, integral_gain, derivative_gain))
+    
+    elif(selection == 'j'):
+        print("Read Position Gains: ")
+        gain_read = ser.read_until(b'\n').decode('utf-8')
+        gain_read = gain_read.split()
+        proportional_gain = float(gain_read[0])
+        integral_gain = float(gain_read[1])
+        derivative_gain = float(gain_read[2])
+        print("\tProportional Gain: {}\n\tIntegral Gain: {}\n\tDerivative Gain: {}\n".format(proportional_gain, integral_gain, derivative_gain))
+
     elif(selection == 'k'):
         print("Test Current Gains:")
         read_plot_matrix(ser)
+
+    elif(selection == 'l'):
+        pos_deg = float(input("Enter Position (Degrees): "))
+        ser.write((str(pos_deg) + '\n').encode())
 
         
     elif(selection == 'p'):
