@@ -8,8 +8,6 @@
 
 #define BUF_SIZE 200
 
-static volatile int encoder_count_offset = 0;
-
 int main() 
 {
   
@@ -23,6 +21,7 @@ int main()
   UART2_Startup();
   INA219_Startup();
   CurrentControl_Startup();
+  PositionControl_Startup();
   __builtin_enable_interrupts();
   set_mode(IDLE);
 
@@ -43,23 +42,16 @@ int main()
 
       case 'c':                     // encoder count
       {
-        WriteUART2("a");
-        while(!get_encoder_flag()){}
-        set_encoder_flag(0);
+        int p = read_position();
         char m[50];
-        int p = get_encoder_count() - encoder_count_offset;
         sprintf(m, "%d\r\n", p);
         NU32DIP_WriteUART1(m);
         break;
       }
       case 'd':                      // degrees of rotation
       {
-        WriteUART2("a");
-        while(!get_encoder_flag()){}
-        set_encoder_flag(0);
         char m[50];
-        int p = get_encoder_count() - encoder_count_offset;
-        double degrees = ((double) p)/(4.0*COUNTS_PER_REV) * 360; 
+        double degrees = read_degrees();
         sprintf(m, "%.2f\r\n", degrees);
         NU32DIP_WriteUART1(m);
         break;
@@ -67,7 +59,7 @@ int main()
 
       case 'e':                         // reset encoder count 
       {
-        encoder_count_offset = get_encoder_count();
+        reset_encoder_count();
         break;
       }
 
@@ -154,11 +146,11 @@ int main()
       {
         reset_pos();
         reset_current_error();
-        set_mode(HOLD);
         float degrees;
         NU32DIP_ReadUART1(buffer, BUF_SIZE);
-        sscanf(buffer, "%f", degrees);
+        sscanf(buffer, "%f", &degrees);
         set_degrees(degrees);
+        set_mode(HOLD);
         break;
       }
 

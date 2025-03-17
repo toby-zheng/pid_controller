@@ -8,6 +8,9 @@
 #include "current.h"
 #include "utilities.h"
 
+int read_position(void);
+double read_degrees(void);
+void reset_encoder_count(void);
 
 void PositionControl_Startup(void);
 void PID_Position_Control(void);

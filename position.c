@@ -1,8 +1,10 @@
 #include "position.h"
 
-static float pos_pgain, pos_igain, pos_dgain, pos_degrees;
+volatile int encoder_count_offset = 0;
 
-volatile float pos_error = 0, i_pos_error = 0, d_pos_error = 0, pos_error_prev = 0 ,pos_current;
+volatile float pos_pgain, pos_igain, pos_dgain, pos_degrees;
+
+volatile float pos_error = 0, i_pos_error = 0, d_pos_error = 0, pos_error_prev = 0 ,pos_current = 0;
 
 
 
@@ -20,6 +22,24 @@ void __ISR(_TIMER_1_VECTOR, IPL3SOFT) PositionControl(void) {
     IFS0bits.T1IF = 0;
 }
 
+int read_position(void) {
+    WriteUART2("a");
+    while(!get_encoder_flag()){}
+    set_encoder_flag(0);
+    int p = get_encoder_count() - encoder_count_offset;
+    return p;
+}
+
+double read_degrees(void) {
+    int pos = read_position();
+    double degrees = ((double) pos)/(4.0*COUNTS_PER_REV) * 360.0;   
+    return degrees;
+}
+
+void reset_encoder_count(void) {
+    encoder_count_offset = get_encoder_count();
+}
+
 void PositionControl_Startup(void) {
 
     // Timer 1, prescale 64
@@ -31,23 +51,24 @@ void PositionControl_Startup(void) {
     IPC1bits.T1IP = 3;
     IPC1bits.T1IS = 0;
 
+    IFS0bits.T1IF = 0;
+    T1CONbits.ON = 1;
+    IEC0bits.T1IE = 1;
+
 }
 
 void PID_Position_Control(void) {
     // encoder
     float count, ref_count, curr_error;
-    WriteUART2("a");
-    while (!get_encoder_flag()) {}
-    set_encoder_flag(0);
-    count = get_encoder_count();
+    count = read_position();
 
     // convert degrees to counts
-    ref_count = pos_degrees * (4*COUNTS_PER_REV) / 360;
+    ref_count = pos_degrees * (4.0 *COUNTS_PER_REV) / 360.0;
 
-    pos_error = (ref_count - count);
-    d_pos_error = (pos_error - pos_error_prev)/ 200;
+    pos_error = (count - ref_count);
+    d_pos_error = (pos_error - pos_error_prev)/ (1.0/200.0);
 
-    pos_current = pos_pgain * pos_error + pos_igain *i_pos_error + pos_dgain * d_pos_error;
+    pos_current = pos_pgain * pos_error + pos_igain * i_pos_error + pos_dgain * d_pos_error;
 
     set_ref_current(pos_current);
 
@@ -95,6 +116,6 @@ void reset_pos(void) {
     pos_error = 0;
     i_pos_error = 0;
     d_pos_error = 0;
-    pos_degrees = 0;
+    pos_current = 0;
 
 }

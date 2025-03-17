@@ -110,7 +110,7 @@ void PI_Control(void) {
 
     // Read Current, PI control for desired current
     read_current = INA219_read_current();
-    current_error = ref_current - read_current;
+    current_error = read_current - ref_current;
     current = igain*i_current_error + pgain*current_error;
 
     // Bounds
@@ -123,10 +123,10 @@ void PI_Control(void) {
 
     // Direction Bit
     if (current > 0) {
-        DIR_BIT = 0;
+        DIR_BIT = 1;
     }
     else {
-        DIR_BIT = 1;
+        DIR_BIT = 0;
     }
 
     // Output Compare (PWM)
